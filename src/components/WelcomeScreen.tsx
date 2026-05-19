@@ -1,0 +1,171 @@
+import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Sparkles } from 'lucide-react';
+
+interface WelcomeScreenProps {
+  isLoading?: boolean;
+}
+
+export default function WelcomeScreen({ isLoading }: WelcomeScreenProps) {
+  const [isVisible, setIsVisible] = useState(true);
+  const [showContent, setShowContent] = useState(false);
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+
+  useEffect(() => {
+    // Check if we've already shown the welcome screen in this session
+    const hasShown = sessionStorage.getItem('welcome_shown');
+    if (hasShown) {
+      setIsVisible(false);
+      return;
+    }
+
+    // Sequence: 1. Show content, 2. Wait minimum time
+    const contentTimer = setTimeout(() => setShowContent(true), 100);
+    const minTimeTimer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, 2000);
+
+    return () => {
+      clearTimeout(contentTimer);
+      clearTimeout(minTimeTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Hide ONLY when:
+    // 1. Min animation time has passed (3.5s)
+    // 2. App loading is done (if provided)
+    // 3. Welcome screen is currently visible
+    if (minTimeElapsed && !isLoading && isVisible) {
+      setIsVisible(false);
+      sessionStorage.setItem('welcome_shown', 'true');
+    }
+  }, [minTimeElapsed, isLoading, isVisible]);
+
+  if (!isVisible) return null;
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 1, scale: 1 }}
+          exit={{ 
+            opacity: 0,
+            scale: 0.95,
+            transition: { duration: 0.6, ease: [0.43, 0.13, 0.23, 0.96] }
+          }}
+          className="fixed inset-0 z-[9999] bg-white dark:bg-slate-950 flex flex-col items-center justify-center overflow-hidden will-change-transform"
+        >
+          {/* Animated Background Elements - Simplified for mobile/performance */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50 sm:opacity-100">
+            <motion.div 
+              animate={{ 
+                scale: [1, 1.1, 1],
+                opacity: [0.2, 0.3, 0.2],
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-500/10 blur-[80px] sm:blur-[120px] rounded-full will-change-[transform,opacity]"
+            />
+            <motion.div 
+              animate={{ 
+                scale: [1, 1.2, 1],
+                opacity: [0.1, 0.2, 0.1],
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+              className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-indigo-500/10 blur-[80px] sm:blur-[120px] rounded-full will-change-[transform,opacity]"
+            />
+          </div>
+
+          <motion.div 
+            className="relative z-10 flex flex-col items-center"
+            exit={{ scale: 0.9, opacity: 0, transition: { duration: 0.4 } }}
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={showContent ? { scale: 1, opacity: 1 } : {}}
+              transition={{ 
+                type: "spring",
+                stiffness: 260,
+                damping: 20,
+                delay: 0.2 
+              }}
+              className="mb-8 relative group"
+            >
+              <svg className="w-24 h-24 md:w-32 md:h-32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 38L8 16C8 16 12 10 24 18C24 18 24 38 24 38Z" fill="#2563eb"/>
+                <path d="M24 38L40 16C40 16 36 10 24 18C24 18 24 38 24 38Z" className="fill-slate-900 dark:fill-white"/>
+                <circle cx="24" cy="8" r="5" fill="#2563eb"/>
+              </svg>
+            </motion.div>
+
+            <div className="overflow-hidden mb-2">
+              <motion.h1
+                initial={{ y: 100 }}
+                animate={showContent ? { y: 0 } : {}}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+                className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 dark:text-white flex items-center gap-3"
+              >
+                VidyaNation
+                <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-blue-500 animate-pulse" />
+              </motion.h1>
+            </div>
+
+            <div className="overflow-hidden">
+              <motion.p
+                initial={{ y: 50 }}
+                animate={showContent ? { y: 0 } : {}}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.6 }}
+                className="text-slate-500 dark:text-slate-400 font-medium text-lg md:text-xl tracking-tight"
+              >
+                Your Future, Our Guidance.
+              </motion.p>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={showContent ? { opacity: 1 } : {}}
+              transition={{ duration: 1, delay: 1.2 }}
+              className="mt-12 flex items-center gap-2"
+            >
+              <div className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ 
+                      scale: [1, 1.5, 1],
+                      opacity: [0.3, 1, 0.3]
+                    }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity, 
+                      delay: i * 0.2,
+                      ease: "easeInOut"
+                    }}
+                    className="w-1.5 h-1.5 bg-blue-600 rounded-full"
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 ml-2">
+                Discovering Excellence
+              </span>
+            </motion.div>
+          </motion.div>
+
+          {/* Bottom Branding */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={showContent ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 1.5 }}
+            className="absolute bottom-12 left-0 right-0 flex justify-center"
+          >
+            <div className="px-6 py-2 rounded-full bg-slate-100/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-md">
+              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                Developed by <span className="text-blue-600 dark:text-blue-400">AYUSH</span>
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
